@@ -15,7 +15,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Fire",
+                    "name": "Attack",
                     "type": "Value",
                     "id": "15184ae3-c6dd-418e-8917-4242a1fc3696",
                     "expectedControlType": "Vector2",
@@ -98,7 +98,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Fire",
+                    "action": "Attack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
