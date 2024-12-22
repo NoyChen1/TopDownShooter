@@ -4,5 +4,5 @@ using UnityEngine;
 
 public interface IEnemySpawner
 {
-    void SpawnEnemy();
+    void SpawnEnemies();
 }

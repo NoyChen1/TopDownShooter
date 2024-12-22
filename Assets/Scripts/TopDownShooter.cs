@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class TopDownShooter : MonoBehaviour
 {
     [Header("Player Settings")]
-    [SerializeField] private PlayerController playerController;
+    [SerializeField] private PlayerHealth playerHealth;
     [SerializeField] private Slider healthBar;
     [SerializeField] private TextMeshProUGUI killCountText;
 
@@ -16,39 +16,50 @@ public class TopDownShooter : MonoBehaviour
     [SerializeField] private EnemySpawner enemySpawner;
     [SerializeField] private int maxKills = 10;
 
-    /*
-    [Header("Effects")]
-    [SerializeField] private GameObject enemyDeathEffect;
-    [SerializeField] private GameObject playerDeathEffect;
-    [SerializeField] private GameObject hitEffect;
-    */
+    [Header("EndGame Settings")]
+    [SerializeField] private TextMeshProUGUI endGameText;
+    [SerializeField] private GameObject endGamePanel;
+
 
     private int killCount = 0;
 
+    private void OnEnable()
+    {
+        Enemy.OnEnemyKilledSimple += HandleOnEnemyKilled;
+        playerHealth.OnHealthChanged += UpdateHealthBar;
+        playerHealth.OnPlayerDied += () => EndGame("You lost!");
+
+    }
+
+    private void OnDisable()
+    {
+        Enemy.OnEnemyKilledSimple -= HandleOnEnemyKilled;
+        playerHealth.OnHealthChanged -= UpdateHealthBar;
+        playerHealth.OnPlayerDied -= () => EndGame("You lost!");
+    }
+
+
     private void Start()
     {
-        healthBar.maxValue = playerController.MaxHealth;
-        healthBar.value = playerController.CurrentHealth;
+        healthBar.maxValue = playerHealth.MaxHealth;
+        healthBar.value = playerHealth.CurrentHealth;
         UpdateKillCount();
     }
 
-    private void Update()
+    private void UpdateHealthBar(int newHealth)
     {
-        healthBar.value = playerController.CurrentHealth;
-        if (playerController.CurrentHealth <= 0)
-        {
-            EndGame("You lost!");
-        }
-        else if (killCount >= maxKills)
-        {
-            EndGame("You won!");
-        }
+        healthBar.value = newHealth;
     }
 
-    public void OnEnemyKilled()
+    public void HandleOnEnemyKilled()
     {
         killCount++;
         UpdateKillCount();
+
+        if (killCount >= maxKills)
+        {
+            EndGame("You won!");
+        }
     }
 
     private void UpdateKillCount()
@@ -58,6 +69,9 @@ public class TopDownShooter : MonoBehaviour
 
     private void EndGame(string message)
     {
+        endGamePanel.gameObject.SetActive(true);
+        endGameText.gameObject.SetActive(true);
+        endGameText.text = message;
         Debug.Log(message);
         Time.timeScale = 0;
     }

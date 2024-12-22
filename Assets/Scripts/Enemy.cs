@@ -1,19 +1,33 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
     [SerializeField] private float speed;
     [SerializeField] private int damage;
+    [SerializeField] private int health = 10;
     [SerializeField] private float damageCooldown = 1f;
 
     private Transform player;
     private float lastDamageTime;
 
+    [Header("Audio Clips")]
+    [SerializeField] private AudioClip hurtSound; 
+    [SerializeField] private AudioClip dieSound;  
+
+    private AudioSource audioSource;
+
+    public static event Action<Enemy> OnEnemyKilledWithObject; 
+    public static event Action OnEnemyKilledSimple; 
+    
+
     private void Start()
     {
-        player = FindObjectOfType<PlayerController>().transform;
+        player = FindObjectOfType<PlayerHealth>().transform;
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -23,6 +37,7 @@ public class Enemy : MonoBehaviour
 
     private void MoveTowardsPlayer()
     {
+
         if (player != null)
         {
             Vector3 direction = (player.position - transform.position).normalized;
@@ -30,19 +45,42 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if (collision.gameObject.CompareTag("Player") && Time.time > lastDamageTime + damageCooldown)
+        if (other.gameObject.CompareTag("Player") && Time.time > lastDamageTime + damageCooldown)
         {
-            collision.gameObject.GetComponent<PlayerController>().CurrentHealth -= damage;
+            other.gameObject.GetComponent<PlayerHealth>().TakeDamage(damage);
             lastDamageTime = Time.time;
-            Debug.Log("Player Damaged!");
+        }
+    }
+  
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+
+        if (health <= 0)
+        {
+            Die();
+        }
+        else
+        {
+            PlaySound(hurtSound);
         }
     }
 
-    public void TakeDamage(int damage)
+    private void Die()
     {
-        Destroy(gameObject); // Replace with damage logic if needed
+        PlaySound(dieSound);
+        OnEnemyKilledWithObject?.Invoke(this);
+        OnEnemyKilledSimple?.Invoke();
+        Destroy(gameObject, dieSound.length);
     }
 
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
 }

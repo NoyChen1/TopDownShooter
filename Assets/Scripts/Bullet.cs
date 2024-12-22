@@ -11,6 +11,7 @@ public class Bullet : MonoBehaviour
     private Vector3 direction;
     private Rigidbody rb;
 
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -22,22 +23,20 @@ public class Bullet : MonoBehaviour
         transform.position = attackPoint.position;
         transform.rotation = Quaternion.LookRotation(direction);
 
-        // Reset velocity and apply new direction
         if (rb != null)
         {
             rb.velocity = this.direction * speed;
         }
 
-        // Schedule deactivation after lifetime
         CancelInvoke(nameof(Deactivate));
         Invoke(nameof(Deactivate), maxLifeTime);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if (collision.gameObject.CompareTag("Enemy"))
+        if (other.gameObject.CompareTag("Enemy"))
         {
-            collision.gameObject.GetComponent<Enemy>().TakeDamage(damage);
+            other.gameObject.GetComponent<Enemy>().TakeDamage(damage);
             Deactivate();
         }
     }
@@ -46,7 +45,6 @@ public class Bullet : MonoBehaviour
     {
         gameObject.SetActive(false);
 
-        // Reset Rigidbody velocity to avoid lingering motion
         if (rb != null)
         {
             rb.velocity = Vector3.zero;
